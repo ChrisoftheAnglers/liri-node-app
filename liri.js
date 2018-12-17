@@ -18,7 +18,9 @@ var bands = keys.bandsInTown;
 // Function to parse text file for command
 function parseTextandRun() {
     var APIchoice;
-    var query;
+    var query = { // Make this an object instead of just a string for easy import into runSearch
+        search: ""
+    };
     fs.readFile("random.txt", "utf8", function(error, data) {
         if (error) {
             console.log("Error:", error)
@@ -26,19 +28,28 @@ function parseTextandRun() {
         {
             var output = data.split(","); // Split string into 2 arrays separated by comma
             APIchoice = output[0]; // Should be string for search type
-            query = output[1]; // String for search
+            query.search = output[1]; // String for search
             runSearch(APIchoice, query);
         }
     })
 }
 
-function runSearch(choice, query) {
-    console.log(choice);
+function runSearch(choice, query) { // Query is object containing search string passed from inquiry
     switch(choice) { // Done since search mechanism is not uniform across API's
             case "spotify-this-song":
-                spotify.search({type: 'track', query: query}, function(error, data) {
+                spotify.search({type: 'track', query: query.search}, function(error, data) {
                     if (!error) {
-                        console.log(data); // Will reformat depending on initial output
+                        var songInfo = data.tracks.items[0];
+                        console.log("Artist(s):");
+                        songInfo.artists.forEach(function(artist) {
+                            console.log("\t", artist.name);
+                        })
+                        console.log("\nSong Name:", songInfo.name);
+                        console.log("\nPreview Link:", songInfo.preview_url); 
+                        console.log("\nSong Album:", songInfo.album.name);
+                    }
+                    else {
+                        console.log("Error:", error);
                     }
                 })
                 break;
@@ -46,10 +57,21 @@ function runSearch(choice, query) {
                 request("https://rest.bandsintown.com/artists/" + query.search + "/events?app_id=" + bands.key, function(error, response, body) {
                     if (!error && response.statusCode === 200) {
                         var concert = JSON.parse(body);
-                        var date = moment(concert[0].venue.datetime); // Store date in moment object to change output format
-                        console.log("Name of Venue:", concert[0].venue.name);
-                        console.log("Venue Location: " + concert[0].venue.city + ", " + concert[0].venue.region + ", " + concert[0].venue.country);
-                        console.log("Date of Event:", date.format("MM/DD/YYYY"));
+                        if (typeof concert[0] !== 'undefined') {
+                            var date = moment(concert[0].venue.datetime); // Store date in moment object to change output format
+                            console.log("Name of Venue:", concert[0].venue.name);
+                            // If region isn't specified (such as for a city in Canada), it will be left out
+                            if (concert[0].venue.region === "") {
+                                console.log("\nVenue Location: " + concert[0].venue.city + ", " + concert[0].venue.country);
+                            }
+                            else {
+                                console.log("\nVenue Location: " + concert[0].venue.city + ", " + concert[0].venue.region + ", " + concert[0].venue.country);
+                            }
+                            console.log("\nDate of Event:", date.format("MM/DD/YYYY"));
+                        }
+                        else {
+                            console.log("This artist/band does not currently have a venue listed.");
+                        }
                     }
                     else  {
                         console.log("Error:", error);
@@ -61,9 +83,16 @@ function runSearch(choice, query) {
                     if (!error && response.statusCode === 200) {
                         var movie = JSON.parse(body);
                         console.log("Movie Title:", movie.Title);
-                        console.log("Year of Release:", movie.Year)
-                        console.log("Rating on IMDB:", movie.imdbRating);
-                        console.log("Plot:", movie.Plot);
+                        console.log("\nYear of Release:", movie.Year)
+                        console.log("\nRating on IMDB:", movie.imdbRating);
+                        // Added to prevent error when movie does not have a full ratings index
+                        if (typeof movie.Ratings[1] !== 'undefined') {
+                            console.log("\nRating on Rotten Tomatoes:", movie.Ratings[1].Value);
+                        }
+                        console.log("\nCountry of production:", movie.Country);
+                        console.log("\nLanguage:", movie.Language);
+                        console.log("\nPlot:", movie.Plot);
+                        console.log("\nActors:", movie.Actors);
                     }
                     else {
                         console.log("Error:", error);
