@@ -1,0 +1,27 @@
+{
+  "name": "liri-node-app",
+  "version": "1.0.0",
+  "description": "Assignment using node.js to access the Spotify, OMDB, and Bands in Town APIs and acquire info based on user input.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrisoftheAnglers/liri-node-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChrisoftheAnglers/liri-node-app/issues"
+  },
+  "homepage": "https://github.com/ChrisoftheAnglers/liri-node-app#readme",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "inquirer": "^6.2.1",
+    "moment": "^2.23.0",
+    "node-spotify-api": "^1.0.7",
+    "request": "^2.88.0"
+  }
+}
